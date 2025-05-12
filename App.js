@@ -7,6 +7,7 @@ import MainMenu from './screens/MainMenu';
 import GameScreen from './screens/GameScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import LeaderboardScreen from './screens/LeaderboardScreen';
+import EndScreen from './screens/EndScreen';
 
 // Ignore specific warnings that are coming from libraries we can't fix
 LogBox.ignoreLogs([
@@ -26,6 +27,7 @@ export default function App() {
         <Stack.Screen name="GameScreen" component={GameScreen} />
         <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
         <Stack.Screen name="LeaderboardScreen" component={LeaderboardScreen} />
+        <Stack.Screen name="EndScreen" component={EndScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

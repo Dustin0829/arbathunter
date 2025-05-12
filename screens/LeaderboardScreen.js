@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  Image,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Video } from 'expo-av';
@@ -101,7 +102,11 @@ export default function LeaderboardScreen({ navigation }) {
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
-        <Text style={styles.backButtonText}>Back to Menu</Text>
+        <Image 
+          source={require('../assets/images/BackBtn.png')} 
+          style={styles.backButtonImage} 
+          resizeMode="contain"
+        />
       </TouchableOpacity>
     </View>
   );
@@ -223,17 +228,12 @@ const styles = StyleSheet.create({
     color: '#DD4444',
   },
   backButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-    marginTop: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    position: 'absolute',
+    bottom: -20,
+    alignSelf: 'center',
   },
-  backButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 18,
+  backButtonImage: {
+    width: 100,
+    height: 100,
   },
 }); 

@@ -4,7 +4,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Switch,
   ImageBackground,
   Dimensions,
   Image,
@@ -90,7 +89,7 @@ export default function SettingsScreen({ navigation }) {
     <View style={styles.container}>
       <StatusBar hidden />
       
-      {/* Background Video - reusing the same as main menu */}
+      {/* Background Video */}
       <Video
         ref={videoRef}
         source={require('../assets/images/GameMenuBackground.mp4')}
@@ -99,74 +98,86 @@ export default function SettingsScreen({ navigation }) {
         isLooping
         shouldPlay
         isMuted={!soundEnabled}
-        
       />
-                <TouchableOpacity
-            style={styles.muteButton}
-            onPress={() => setSoundEnabled(!soundEnabled)}
-          >
-            <Text style={styles.muteButtonText}>{soundEnabled ? '🔊' : '🔇'}</Text>
-          </TouchableOpacity>
-      {/* Back button in top left */}
+      
+      {/* Back Button */}
       <TouchableOpacity
-        style={styles.backButtonTopLeft}
-
+        style={styles.backButton}
         onPress={() => navigation.navigate('MainMenu')}
       >
-        <Text style={styles.backButtonTopLeftText}>Back</Text>
+        <Image 
+          source={require('../assets/images/BackBtn.png')} 
+          style={styles.backButtonImage} 
+          resizeMode="contain"
+        />
       </TouchableOpacity>
       
-      {/* Main content */}
+      {/* Volume Button */}
+      <TouchableOpacity
+        style={styles.volumeButton}
+        onPress={() => setSoundEnabled(!soundEnabled)}
+      >
+        <Image 
+          source={soundEnabled 
+            ? require('../assets/images/VolumeBtn.png') 
+            : require('../assets/images/VolumeBtn OnClick.png')
+          } 
+          style={styles.volumeButtonImage} 
+          resizeMode="contain"
+        />
+      </TouchableOpacity>
+      
+      {/* Main Content */}
       <View style={styles.mainContent}>
         {/* Settings Title */}
-        <Text style={styles.title}>SETTINGS</Text>
+        <Image 
+          source={require('../assets/images/Settings Title.png')} 
+          style={styles.settingsTitleImage} 
+          resizeMode="contain"
+        />
         
         {/* Difficulty Section */}
         <View style={styles.difficultySection}>
-          <Text style={styles.difficultyTitle}>DIFFICULTY</Text>
-          
           <View style={styles.difficultyOptions}>
             <TouchableOpacity
-              style={[
-                styles.difficultyButton,
-                difficulty === 'EASY' && styles.difficultyButtonSelected,
-              ]}
               onPress={() => handleDifficultyChange('EASY')}
             >
-              <Text style={[
-                styles.difficultyButtonText,
-                difficulty === 'EASY' && styles.difficultyButtonTextSelected
-              ]}>EASY</Text>
+              <Image 
+                source={difficulty === 'EASY' 
+                  ? require('../assets/images/EasyBtn OnClick.png') 
+                  : require('../assets/images/EasyBtn.png')
+                } 
+                style={styles.difficultyButtonImage} 
+                resizeMode="contain"
+              />
             </TouchableOpacity>
             
             <TouchableOpacity
-              style={[
-                styles.difficultyButton,
-                difficulty === 'MEDIUM' && styles.difficultyButtonSelected,
-              ]}
               onPress={() => handleDifficultyChange('MEDIUM')}
             >
-              <Text style={[
-                styles.difficultyButtonText,
-                difficulty === 'MEDIUM' && styles.difficultyButtonTextSelected
-              ]}>Medium</Text>
+              <Image 
+                source={difficulty === 'MEDIUM' 
+                  ? require('../assets/images/MediumBtn On Click.png') 
+                  : require('../assets/images/MediumBtn.png')
+                } 
+                style={styles.difficultyButtonImage} 
+                resizeMode="contain"
+              />
             </TouchableOpacity>
             
             <TouchableOpacity
-              style={[
-                styles.difficultyButton,
-                difficulty === 'HARD' && styles.difficultyButtonSelected,
-              ]}
               onPress={() => handleDifficultyChange('HARD')}
             >
-              <Text style={[
-                styles.difficultyButtonText,
-                difficulty === 'HARD' && styles.difficultyButtonTextSelected
-              ]}>Hard</Text>
+              <Image 
+                source={difficulty === 'HARD' 
+                  ? require('../assets/images/HardBtn OnClick.png') 
+                  : require('../assets/images/HardBtn.png')
+                } 
+                style={styles.difficultyButtonImage} 
+                resizeMode="contain"
+              />
             </TouchableOpacity>
           </View>
-          
-          {/* Mute button in corner */}
         </View>
       </View>
     </View>
@@ -185,14 +196,52 @@ const styles = StyleSheet.create({
     left: 0,
     bottom: 0,
     right: 0,
-    opacity: 0.85, // Make the red background more prominent
+    opacity: 0.85,
+  },
+
+  backButtonImage: {
+    width: 100,
+    height: 100,
+    position: 'absolute',
+    top: 20,
+    left: -380,
+  },
+  volumeButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    zIndex: 10,
+  },
+  volumeButtonImage: {
+    width: 100,
+    height: 100,
   },
   mainContent: {
     flex: 1,
     width: '100%',
+    paddingHorizontal: 20,
+  },
+  settingsTitleImage: {
+    width: '80%',
+    height: 350,
+    position: 'absolute',
+    top: -30,
+    left: '10%',
+  },
+  difficultySection: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
+  },
+  difficultyOptions: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 20,
+  },
+  difficultyButtonImage: {
+    width: 200,
+    height: 200,
+    marginBottom: 20,
   },
   title: {
     fontSize: 64,
@@ -206,30 +255,19 @@ const styles = StyleSheet.create({
     textShadowRadius: 10,
     letterSpacing: 4,
     position: 'absolute',
-    top: 0,
   },
   difficultySection: {
     width: '100%',
     alignItems: 'center',
-    marginTop: 150,
+    marginTop: 200,
   },
-  difficultyTitle: {
-    fontSize: 42,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 30,
-    textAlign: 'center',
-    fontFamily: 'monospace',
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: -2, height: 2 },
-    textShadowRadius: 5,
-    letterSpacing: 2,
-  },
+
   difficultyOptions: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     width: '90%',
     paddingHorizontal: 20,
+    gap: 20,
   },
   difficultyButton: {
     paddingVertical: 18,
@@ -269,46 +307,18 @@ const styles = StyleSheet.create({
     textShadowRadius: 5,
     fontFamily: 'monospace',
   },
-  resetButton: {
-    backgroundColor: GAME_CONFIG.COLORS.SECONDARY,
-    paddingVertical: 15,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-    marginBottom: 30,
-    alignSelf: 'center',
-    borderWidth: 3,
-    borderColor: 'white',
-  },
-  resetButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 18,
-    fontFamily: 'monospace',
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: -1, height: 1 },
-    textShadowRadius: 5
-  },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
     paddingVertical: 15,
     paddingHorizontal: 25,
-    borderRadius: 8,
-    borderWidth: 3,
-    borderColor: 'white',
   },
   buttonIcon: {
     width: 20,
     height: 20,
     marginRight: 10,
   },
-  backButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 18,
-    fontFamily: 'monospace',
-  },
+  
   muteButton: {
     position: 'absolute',
     top: 20,

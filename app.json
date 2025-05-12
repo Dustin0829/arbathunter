@@ -40,7 +40,8 @@
         {
           "cameraPermission": "Allow AR Bat Hunter to access your camera to play the AR game."
         }
-      ]
+      ],
+      "expo-asset"
     ]
   }
 }
