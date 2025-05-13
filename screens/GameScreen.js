@@ -166,14 +166,6 @@ export default function GameScreen({ navigation, route }) {
     }
     return false;
   };
-  
-  // Function to get current bat count
-  const getBatCount = () => {
-    if (arSceneRef.current) {
-      return arSceneRef.current.getBatCount();
-    }
-    return 0;
-  };
 
   // Handle bat hit
   const handleBatHit = useCallback((points = 10) => {
@@ -284,57 +276,55 @@ export default function GameScreen({ navigation, route }) {
       
       <TouchableWithoutFeedback onPress={handleScreenTap}>
         <View style={styles.container}>
-          <CameraView ref={cameraRef} style={{flex: 1}}>
-            <View style={styles.overlay}>
-              {/* AR Scene with bat sprites */}
-              <ARScene
-                ref={arSceneRef}
-                active={gameActive && !gameOver}
-                onBatHit={handleBatHit}
-                difficulty={difficulty}
+          <CameraView ref={cameraRef}>
+            {/* AR Scene with bat sprites */}
+            <ARScene
+              ref={arSceneRef}
+              active={gameActive && !gameOver}
+              onBatHit={handleBatHit}
+              difficulty={difficulty}
+            />
+            
+            {/* Back button */}
+            <TouchableOpacity 
+              style={styles.backButton} 
+              onPress={() => {
+                setGameActive(false);
+                navigation.goBack();
+              }}
+            >
+              <Image 
+                source={require('../assets/images/XBtn.png')} 
+                style={styles.backButtonImage} 
+                resizeMode="contain"
               />
-              
-              {/* Back button */}
-              <TouchableOpacity 
-                style={styles.backButton} 
-                onPress={() => {
-                  setGameActive(false);
-                  navigation.goBack();
-                }}
-              >
-                <Image 
-                  source={require('../assets/images/XBtn.png')} 
-                  style={styles.backButtonImage} 
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-              
-              {/* Stats display (time, score, bats) */}
-              <StatsDisplay
-                timeLeft={timeLeft}
-                score={score}
-                batsKilled={batsKilled}
-                targetBats={targetBats}
-              />
-              
-              {/* Stamina bar */}
-              <StaminaBar stamina={stamina} />
-              
-              {/* Miss indicator (shows briefly when player misses) */}
-              {lastMissPosition && (
-                <View style={[styles.missIndicator, {
-                  left: lastMissPosition.x - 25,
-                  top: lastMissPosition.y - 25
-                }]} />
-              )}
-              
-              {/* Consecutive hits indicator (only shows when > 1) */}
-              {consecutiveHits > 1 && (
-                <View style={styles.comboContainer}>
-                  <Text style={styles.comboText}>{consecutiveHits}x COMBO!</Text>
-                </View>
-              )}
-            </View>
+            </TouchableOpacity>
+            
+            {/* Stats display (time, score) */}
+            <StatsDisplay
+              timeLeft={timeLeft}
+              score={score}
+              batsKilled={batsKilled}
+              targetBats={targetBats}
+            />
+            
+            {/* Stamina bar */}
+            <StaminaBar stamina={stamina} />
+            
+            {/* Miss indicator (shows briefly when player misses) */}
+            {lastMissPosition && (
+              <View style={[styles.missIndicator, {
+                left: lastMissPosition.x - 25,
+                top: lastMissPosition.y - 25
+              }]} />
+            )}
+            
+            {/* Consecutive hits indicator (only shows when > 1) */}
+            {consecutiveHits > 1 && (
+              <View style={styles.comboContainer}>
+                <Text style={styles.comboText}>{consecutiveHits}x COMBO!</Text>
+              </View>
+            )}
           </CameraView>
         </View>
       </TouchableWithoutFeedback>
@@ -346,21 +336,9 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1,
   },
-  overlay: { 
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   backButton: {
     position: 'absolute',
-    left: 20, // Fixed position to be visible on screen
+    left: 20,
     top: 20,
     width: 80,
     height: 80,
@@ -382,7 +360,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 0, 0, 0.3)',
     zIndex: 50,
   },
-
   comboContainer: {
     position: 'absolute',
     top: height / 2 - 100,
@@ -402,4 +379,5 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 5,
   },
+
 });

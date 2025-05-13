@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import { View, StyleSheet, Dimensions, Image, Animated } from 'react-native';
+import { View, StyleSheet, Dimensions, Animated, Platform } from 'react-native';
+import AnimatedGif from './AnimatedGif';
 import { Asset } from 'expo-asset';
 
 // Get screen dimensions
@@ -107,7 +108,7 @@ const ARScene = forwardRef(({ active = true, onBatHit, difficulty = 'MEDIUM' }, 
     let typeScale = 1.0;
     let points = 10; // Default points value
     let speed = 1.0; // Default animation speed multiplier
-    let opacity = zFactor; // Default opacity based on depth
+    let opacity = 1.0; // Full opacity for all bats
     
     switch(batType) {
       case 'small':
@@ -119,13 +120,13 @@ const ARScene = forwardRef(({ active = true, onBatHit, difficulty = 'MEDIUM' }, 
         typeScale = 1.3;
         points = 10;
         speed = 0.8; // Slower movement
-        opacity = Math.min(1, zFactor * 1.2); // More opaque
+        opacity = 1.0; // Full opacity
         break;
       case 'ghost':
         typeScale = 1.0;
         points = 25; // Ghost bats are worth more points
         speed = 1.5; // Fastest movement
-        opacity = 0.6; // Always semi-transparent
+        opacity = 1.0; // Full opacity for better visibility
         break;
     }
     
@@ -328,54 +329,7 @@ const ARScene = forwardRef(({ active = true, onBatHit, difficulty = 'MEDIUM' }, 
   
   return (
     <View style={styles.container}>
-      {bats.map(bat => {
-        // Determine which bat image to use based on type
-        let batImageSource;
-        let imageStyle = { ...styles.batImage };
-        
-        switch(bat.batType) {
-          case 'small':
-            batImageSource = require('../assets/images/pixel bats.gif');
-            break;
-          case 'large':
-            batImageSource = require('../assets/images/pixel bats.gif'); // Use the same image but scaled up
-            break;
-          case 'ghost':
-            batImageSource = require('../assets/images/pixel bats.gif'); // Use the same image but with transparency
-            // Add a blueish tint for ghost bats
-            imageStyle.tintColor = 'rgba(180, 220, 255, 0.9)';
-            break;
-          default:
-            batImageSource = require('../assets/images/pixel bats.gif');
-        }
-        
-        return (
-          <Animated.View 
-            key={bat.id}
-            style={[
-              styles.batContainer,
-              {
-                left: bat.position.x,
-                top: bat.position.y,
-                zIndex: Math.round(bat.position.z),
-                opacity: bat.opacity,
-                transform: [
-                  { scale: bat.scale },
-                  { translateY: bat.translateY },
-                  { translateX: bat.translateX },
-                  { rotate: `${bat.rotation}deg` }
-                ]
-              }
-            ]}
-          >
-            <Image 
-              source={batImageSource} 
-              style={imageStyle}
-              resizeMode="contain"
-            />
-          </Animated.View>
-        );
-      })}
+      {/* Bats rendering removed - will be added later */}
     </View>
   );
 });
@@ -400,6 +354,7 @@ const styles = StyleSheet.create({
   batImage: {
     width: '100%',
     height: '100%',
+    tintColor: '#FFFFFF', // Make the bat fully visible
   }
 });
 

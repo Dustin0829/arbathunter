@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -8,6 +8,7 @@ import {
   Dimensions,
   Animated,
 } from 'react-native';
+import AnimatedGif from '../components/AnimatedGif';
 import { StatusBar } from 'expo-status-bar';
 import { Video } from 'expo-av';
 
@@ -114,10 +115,9 @@ export default function EndScreen({ navigation, route }) {
         {/* Animated bat for loser screen */}
         {!win && (
           <Animated.View style={{ transform: [{ rotate }] }}>
-            <Image
-              source={require('../assets/images/pixel bats.gif')}
+            <AnimatedGif
+              source={require('../assets/images/pixel_bats.gif')}
               style={styles.batImage}
-              resizeMode="contain"
             />
           </Animated.View>
         )}
