@@ -8,6 +8,7 @@ import {
   Image,
   Dimensions,
   Vibration,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Audio } from 'expo-av';
@@ -16,7 +17,6 @@ import ARScene from '../components/ARScene';
 
 import StaminaBar from '../components/game/StaminaBar';
 import StatsDisplay from '../components/game/StatsDisplay';
-import BatsCounter from '../components/game/BatsCounter';
 import { GAME_CONFIG } from '../utils/gameConfig';
 
 // Get screen dimensions
@@ -47,7 +47,20 @@ export default function GameScreen({ navigation, route }) {
   };
   
   const [targetBats] = useState(getTargetBats());
-  const [crosshairPosition] = useState({ x: width / 2, y: height / 2 });
+  const [lastTapPosition, setLastTapPosition] = useState({ x: 0, y: 0 });
+  const [lastMissPosition, setLastMissPosition] = useState(null);
+  const missIndicatorTimeoutRef = useRef(null);
+  
+  // Handle screen tap
+  const handleScreenTap = (event) => {
+    if (!gameActive || gameOver) return;
+    
+    const tapX = event.nativeEvent.locationX;
+    const tapY = event.nativeEvent.locationY;
+    
+    setLastTapPosition({ x: tapX, y: tapY });
+    handleShoot(tapX, tapY);
+  };
 
   // Sound effects
   const [shootSound, setShootSound] = useState();
@@ -153,9 +166,17 @@ export default function GameScreen({ navigation, route }) {
     }
     return false;
   };
+  
+  // Function to get current bat count
+  const getBatCount = () => {
+    if (arSceneRef.current) {
+      return arSceneRef.current.getBatCount();
+    }
+    return 0;
+  };
 
   // Handle bat hit
-  const handleBatHit = useCallback(() => {
+  const handleBatHit = useCallback((points = 10) => {
     // Play hit sound - commented out until sound files are added
     /*
     if (GAME_CONFIG.SOUND_ENABLED && hitSound) {
@@ -181,7 +202,7 @@ export default function GameScreen({ navigation, route }) {
     }
     
     // Update score and bats killed
-    const basePoints = 10;
+    const basePoints = points; // Use the points value from the bat type
     const totalPoints = basePoints + bonus;
     
     setBatsKilled(prev => {
@@ -196,11 +217,13 @@ export default function GameScreen({ navigation, route }) {
     setScore(prev => prev + totalPoints);
     
     // Increase stamina slightly for successful hit
-    setStamina(prev => Math.min(100, prev + 5));
+    // More points = more stamina recovery
+    const staminaBoost = Math.min(15, Math.floor(points / 5) + 5);
+    setStamina(prev => Math.min(100, prev + staminaBoost));
   }, [consecutiveHits, lastShotTime, targetBats, hitSound]);
   
   // Handle shooting
-  const handleShoot = useCallback(() => {
+  const handleShoot = useCallback((tapX, tapY) => {
     if (!gameActive || gameOver) return;
     
     // Play shoot sound - commented out until sound files are added
@@ -210,8 +233,12 @@ export default function GameScreen({ navigation, route }) {
     }
     */
     
+    // Vibrate on shoot for feedback
+    Vibration.vibrate(50);
+    
     // Check if hit any bat
-    const hit = checkBatHit(crosshairPosition);
+    const tapPosition = { x: tapX, y: tapY };
+    const hit = checkBatHit(tapPosition);
     
     if (!hit) {
       // Miss - reduce stamina
@@ -221,8 +248,27 @@ export default function GameScreen({ navigation, route }) {
       }
       */
       
+      // Show miss indicator
+      setLastMissPosition(tapPosition);
+      
+      // Clear previous timeout if exists
+      if (missIndicatorTimeoutRef.current) {
+        clearTimeout(missIndicatorTimeoutRef.current);
+      }
+      
+      // Set timeout to hide miss indicator after 500ms
+      missIndicatorTimeoutRef.current = setTimeout(() => {
+        setLastMissPosition(null);
+      }, 500);
+      
+      // Reset consecutive hits on miss
+      setConsecutiveHits(0);
+      
+      // Reduce stamina more if player has been missing a lot
+      const staminaReduction = consecutiveHits === 0 ? 12 : 8; // Reduced penalty to make game more forgiving
+      
       setStamina(prev => {
-        const newValue = Math.max(0, prev - 10);
+        const newValue = Math.max(0, prev - staminaReduction);
         // Check lose condition - stamina depleted
         if (newValue <= 0) {
           endGame(false);
@@ -230,86 +276,68 @@ export default function GameScreen({ navigation, route }) {
         return newValue;
       });
     }
-  }, [gameActive, gameOver, crosshairPosition, shootSound, missSound]);
+  }, [gameActive, gameOver, consecutiveHits]);
 
   return (
     <View style={styles.container}>
       <StatusBar hidden />
       
-      <CameraView ref={cameraRef}>
-        <View style={styles.overlay}>
-          {/* AR Scene with 3D bat models */}
-          <ARScene
-            ref={arSceneRef}
-            active={gameActive && !gameOver}
-            onBatHit={handleBatHit}
-            difficulty={difficulty}
-          />
-          {/* Back button */}
-          <TouchableOpacity 
-            style={styles.backButton} 
-            onPress={() => {
-              setGameActive(false);
-              navigation.goBack();
-            }}
-          >
-            <Image 
-              source={require('../assets/images/XBtn.png')} 
-              style={styles.backButtonImage} 
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-          
-          {/* Stats display (time, score) */}
-          <StatsDisplay
-            timeLeft={timeLeft}
-            score={score}
-          />
-          
-          {/* Separate Bats Counter */}
-          <BatsCounter 
-            batsKilled={batsKilled}
-            targetBats={targetBats}
-          />
-          
-          {/* Stamina bar */}
-          <StaminaBar stamina={stamina} />
-          
-          {/* Custom Crosshair */}
-          <View style={styles.crosshairContainer}>
-            <View style={styles.crosshairHorizontal} />
-            <View style={styles.crosshairVertical} />
-            <View style={styles.crosshairCenter} />
-          </View>
-          
-          {/* Gun image */}
-          <Image 
-            source={require('../assets/images/gun.png')} 
-            style={styles.gunImage}
-            resizeMode="contain"
-          />
-          
-          {/* Fire Button */}
-          <TouchableOpacity 
-            style={styles.fireButton}
-            onPress={handleShoot}
-            activeOpacity={0.7}
-          >
-            <Image 
-              source={require('../assets/images/FireButton.png')} 
-              style={styles.fireButtonImage} 
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-          
-          {/* Consecutive hits indicator (only shows when > 1) */}
-          {consecutiveHits > 1 && (
-            <View style={styles.comboContainer}>
-              <Text style={styles.comboText}>{consecutiveHits}x COMBO!</Text>
+      <TouchableWithoutFeedback onPress={handleScreenTap}>
+        <View style={styles.container}>
+          <CameraView ref={cameraRef} style={{flex: 1}}>
+            <View style={styles.overlay}>
+              {/* AR Scene with bat sprites */}
+              <ARScene
+                ref={arSceneRef}
+                active={gameActive && !gameOver}
+                onBatHit={handleBatHit}
+                difficulty={difficulty}
+              />
+              
+              {/* Back button */}
+              <TouchableOpacity 
+                style={styles.backButton} 
+                onPress={() => {
+                  setGameActive(false);
+                  navigation.goBack();
+                }}
+              >
+                <Image 
+                  source={require('../assets/images/XBtn.png')} 
+                  style={styles.backButtonImage} 
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+              
+              {/* Stats display (time, score, bats) */}
+              <StatsDisplay
+                timeLeft={timeLeft}
+                score={score}
+                batsKilled={batsKilled}
+                targetBats={targetBats}
+              />
+              
+              {/* Stamina bar */}
+              <StaminaBar stamina={stamina} />
+              
+              {/* Miss indicator (shows briefly when player misses) */}
+              {lastMissPosition && (
+                <View style={[styles.missIndicator, {
+                  left: lastMissPosition.x - 25,
+                  top: lastMissPosition.y - 25
+                }]} />
+              )}
+              
+              {/* Consecutive hits indicator (only shows when > 1) */}
+              {consecutiveHits > 1 && (
+                <View style={styles.comboContainer}>
+                  <Text style={styles.comboText}>{consecutiveHits}x COMBO!</Text>
+                </View>
+              )}
             </View>
-          )}
+          </CameraView>
         </View>
-      </CameraView>
+      </TouchableWithoutFeedback>
     </View>
   );
 }
@@ -319,13 +347,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   overlay: { 
-    flex: 1, 
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
     backgroundColor: 'transparent',
-    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   backButton: {
     position: 'absolute',
-    left: -350,
+    left: 20, // Fixed position to be visible on screen
     top: 20,
     width: 80,
     height: 80,
@@ -337,56 +372,17 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
   },
-  gunImage: {
+  missIndicator: {
     position: 'absolute',
-    bottom: -38,
-    right: -450,
-    width: 600,
-    height: 500,
-    zIndex: 10,
-  },
-  crosshairContainer: {
-    position: 'absolute',
-    top: '50%',
-    left: '0%',
-    width: 60,
-    height: 60,
-    marginLeft: -30,
-    marginTop: -30,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 3,
+    borderColor: 'rgba(255, 0, 0, 0.8)',
+    backgroundColor: 'rgba(255, 0, 0, 0.3)',
     zIndex: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  crosshairHorizontal: {
-    position: 'absolute',
-    width: 30,
-    height: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-  },
-  crosshairVertical: {
-    position: 'absolute',
-    width: 2,
-    height: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-  },
-  crosshairCenter: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgb(255, 0, 0)',
-    borderWidth: 1,
-    borderColor: 'white',
-  },
-  fireButton: {
-    position: 'absolute',
-    bottom: 30,
-    left: -380,
-    zIndex: 15,
-  },
-  fireButtonImage: {
-    width: 120,
-    height: 120,
-  },
+
   comboContainer: {
     position: 'absolute',
     top: height / 2 - 100,

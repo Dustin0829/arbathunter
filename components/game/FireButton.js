@@ -26,9 +26,9 @@ const styles = StyleSheet.create({
   fireButton: {
     position: 'absolute',
     bottom: 30,
-    left: -380,
-    width: 100,
-    height: 100,
+    left: 350,
+    width: 400,
+    height: 400,
     backgroundColor: 'rgba(255, 0, 0, 0.7)',
     borderRadius: 50,
     justifyContent: 'center',
